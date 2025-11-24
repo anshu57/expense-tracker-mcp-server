@@ -47,7 +47,7 @@ def add_expense(date: str, amount: float, category: str, subcategory = "", note:
                      INSERT INTO expenses (date, amount, category, subcategory, note)
                      VALUES (?, ?, ?, ?, ?)
                      """, (date, amount, category, subcategory, note))
-    return {"status": "ok", "id": conn}
+    return {"status": "ok"}
 
 @mcp.tool
 def list_expenses() -> list[dict]:
