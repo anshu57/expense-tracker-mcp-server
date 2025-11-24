@@ -74,7 +74,7 @@ def categories():
         return f.read()    
 
 if __name__ == "__main__":
-    mcp.run()
+    mcp.run(transport="http", host="0.0.0.0", port=8000)
 
 # To run the server, execute this script and connect to it using a FastMCP client.
 # You can then call the `add_expense` and `list_expenses` tools remotely.@mcp.tool
