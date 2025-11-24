@@ -1,18 +1,31 @@
 from fastmcp import FastMCP
 import os
 import sqlite3
-
-DB_path = os.path.join(os.path.dirname(__file__), "expense.db")
+import shutil
 
 CATEGORIES_PATH = os.path.join(os.path.dirname(__file__), "categories.json")
 
 
 
+# 1. Define source (read-only) and destination (writable) paths
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+READONLY_DB = os.path.join(BASE_DIR, 'expenses.db')
+WRITABLE_DB = '/tmp/expenses.db'
+
+# 2. Copy the DB to /tmp if it doesn't exist there yet
+if not os.path.exists(WRITABLE_DB):
+    # If you ship an empty DB in your repo, copy it over
+    if os.path.exists(READONLY_DB):
+        shutil.copy2(READONLY_DB, WRITABLE_DB)
+    else:
+        # Or just let sqlite create a new one
+        pass
+
 # create a FatMCP server instance
 mcp = FastMCP(name="Expense Tracker")
 
 def init_db():
-    with sqlite3.connect(DB_path) as conn:
+    with sqlite3.connect(WRITABLE_DB) as conn:
         conn.execute("""
                      CREATE TABLE IF NOT EXISTS expenses (
                          id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -29,7 +42,7 @@ init_db()
 @mcp.tool
 def add_expense(date: str, amount: float, category: str, subcategory = "", note: str = "") -> str:
     """Add an expense record to the database."""
-    with sqlite3.connect(DB_path) as conn:
+    with sqlite3.connect(WRITABLE_DB) as conn:
         conn.execute("""
                      INSERT INTO expenses (date, amount, category, subcategory, note)
                      VALUES (?, ?, ?, ?, ?)
@@ -39,7 +52,7 @@ def add_expense(date: str, amount: float, category: str, subcategory = "", note:
 @mcp.tool
 def list_expenses() -> list[dict]:
     """List all expense records in the database."""
-    with sqlite3.connect(DB_path) as conn:
+    with sqlite3.connect(WRITABLE_DB) as conn:
         cur = conn.cursor()
         cur.execute("SELECT * FROM expenses order by id ASC")
         cols = [d[0] for d in cur.description]
@@ -48,7 +61,7 @@ def list_expenses() -> list[dict]:
 @mcp.tool
 def summarize(start_date, end_date, category=None):
     '''Summarize expenses by category within an inclusive data range.'''
-    with sqlite3.connect(DB_path) as conn:
+    with sqlite3.connect(WRITABLE_DB) as conn:
         query = (
             """
             SELECT category, SUM(amount) AS total_amount
