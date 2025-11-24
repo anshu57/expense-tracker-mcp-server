@@ -40,7 +40,7 @@ def init_db():
 init_db()
 
 @mcp.tool
-def add_expense(date: str, amount: float, category: str, subcategory = "", note: str = "") -> str:
+def add_expense(date: str, amount: float, category: str, subcategory = "", note: str = "") -> dict:
     """Add an expense record to the database."""
     with sqlite3.connect(WRITABLE_DB) as conn:
         conn.execute("""
